@@ -5,7 +5,7 @@
 /public/storage
 /storage/*.key
 /vendor
-.composer.json
+composer.json
 .env
 .env.backup
 .env.production
