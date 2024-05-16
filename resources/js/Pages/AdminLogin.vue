@@ -9,8 +9,12 @@
 
             <!-- Password input -->
             <div class="form-outline mb-4">
-                <input type="password" id="form2Example2" class="form-control" v-model="password" required />
+                <input type="password" id="form2Example2" class="form-control" v-model="password" @input="checkPassword" required />
                 <label class="form-label" for="form2Example2">Password</label>
+                <br>
+                <small v-if="password.length > 0 && !isValidPassword" class="text-danger">
+                    Password must have at least one capital letter , small letter and one special character.
+                </small>
             </div>
 
             <!-- 2 column grid layout for inline styling -->
@@ -58,24 +62,40 @@
 
 <script>
 import axios from "axios";
+
 export default {
     data() {
         return {
             email: '',
             password: '',
+            isValidPassword: true,
         };
     },
     methods: {
         async login() {
+            if (!this.isValidPassword) {
+                return; // Do not submit form if password is not valid
+            }
+
             try {
                 const formData = {
-                email: this.email,
-                password: this.password,
+                    email: this.email,
+                    password: this.password,
                 };
                 const response = await axios.post('/admin_login', formData);
-                console.log(response)
+                console.log(response);
+                // Handle the response as needed, such as redirecting or showing a success message
             } catch (error) {
                 console.error(error);
+                // Handle error response, e.g., display error message to the user
+            }
+        },
+        checkPassword() {
+            if (this.password.length >= 8) {
+                const regex = /^(?=.*[A-Z])(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+                this.isValidPassword = regex.test(this.password);
+            } else {
+                this.isValidPassword = true; // Reset validation when password length is less than 8
             }
         }
     }
