@@ -58,6 +58,7 @@
 
 <script>
 import axios from "axios";
+import { Inertia } from '@inertiajs/inertia';
 export default {
     data() {
         return {
@@ -73,7 +74,9 @@ export default {
                 password: this.password,
                 };
                 const response = await axios.post('/admin_login', formData);
-                console.log(response)
+                if (response.data.status) {
+                    Inertia.visit('/admin_dashboard');
+                }
             } catch (error) {
                 console.error(error);
             }
