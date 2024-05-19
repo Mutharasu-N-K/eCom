@@ -3,14 +3,22 @@
         <form @submit.prevent="login">
             <!-- Email input -->
             <div class="form-outline mb-4">
-                <input type="email" id="form2Example1" class="form-control" v-model="email" required />
+                <input type="email" id="form2Example1" class="form-control" v-model="email" @input="checkEmail"  />
                 <label class="form-label" for="form2Example1">Email address</label>
+                 <br>
+                <small v-if="showEmailError && emailError" class="text-danger">
+                    {{ emailError }}
+                </small>
             </div>
 
             <!-- Password input -->
             <div class="form-outline mb-4">
-                <input type="password" id="form2Example2" class="form-control" v-model="password" required />
+                <input type="password" id="form2Example2" class="form-control" v-model="password" @input="checkPassword"  />
                 <label class="form-label" for="form2Example2">Password</label>
+                <br>
+                <small v-if="showPasswordError && passwordError" class="text-danger" style="margin-top:-50px" >
+                    {{ passwordError }}
+                </small>
             </div>
 
             <!-- 2 column grid layout for inline styling -->
@@ -59,19 +67,32 @@
 <script>
 import axios from "axios";
 import { Inertia } from '@inertiajs/inertia';
+
 export default {
     data() {
         return {
             email: '',
             password: '',
+            emailError: '',
+            passwordError: '',
+            showEmailError: false,
+            showPasswordError: false,
+            loginAttempted: false,
         };
     },
     methods: {
         async login() {
+            this.loginAttempted = true;
+            this.checkEmail();
+            this.checkPassword();
+            if (this.emailError || this.passwordError) {
+                return; // Do not submit the form if there are validation errors
+            }
+
             try {
                 const formData = {
-                email: this.email,
-                password: this.password,
+                    email: this.email,
+                    password: this.password,
                 };
                 const response = await axios.post('/admin_login', formData);
                 if (response.data.status) {
@@ -79,6 +100,30 @@ export default {
                 }
             } catch (error) {
                 console.error(error);
+            }
+        },
+        checkEmail() {
+            if (!this.email && this.loginAttempted) {
+                this.emailError = 'Email is required.';
+                this.showEmailError = true;
+            } else {
+                this.emailError = '';
+                this.showEmailError = false;
+            }
+        },
+        checkPassword() {
+            if (this.password.length >= 8) {
+                const regex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*])(?=.*[0-9])[A-Za-z\d!@#$%^&*]{8,}$/;
+                this.showPasswordError = this.loginAttempted && !regex.test(this.password);
+                this.passwordError = !regex.test(this.password)
+                    ? 'Password must have at least one capital letter, one small letter, one special character, and one number.'
+                    : '';
+            } else if (this.loginAttempted) {
+                this.passwordError = 'Password is required.';
+                this.showPasswordError = true;
+            } else {
+                this.passwordError = '';
+                this.showPasswordError = false;
             }
         }
     }
